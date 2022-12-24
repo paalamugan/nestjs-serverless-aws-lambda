@@ -1,21 +1,16 @@
+import { Environment } from '@app/types/env';
 import { plainToInstance } from 'class-transformer';
 import { IsEnum, IsString, validateSync } from 'class-validator';
-
-enum Environment {
-  Development = 'dev',
-  Production = 'prod',
-  Test = 'test',
-}
 
 class EnvironmentVariables {
   @IsEnum(Environment)
   NODE_ENV: Environment;
 
   @IsString()
-  GOOGLE_FORM_URL: string;
+  GOOGLE_FORM_ID: string;
 
-  //   @IsNumber()
-  //   PORT?: number;
+  // @IsNumber()
+  // PORT?: number;
 }
 
 export function validate(config: Record<string, unknown>) {
@@ -26,8 +21,16 @@ export function validate(config: Record<string, unknown>) {
     skipMissingProperties: false,
   });
 
-  if (errors.length > 0) {
-    throw new Error(errors.toString());
+  if (errors.length <= 0) {
+    return validatedConfig;
   }
-  return validatedConfig;
+
+  for (const error of errors) {
+    const { property, value, constraints } = error;
+
+    if (constraints) {
+      const message = Object.values(constraints).join(', ') + `. But we got: ${property}=${value}`;
+      throw new Error(message);
+    }
+  }
 }

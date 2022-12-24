@@ -1,47 +1,51 @@
-import { BadRequestException, Injectable, Logger } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { SendGoogleFormRequestDto, SendGoogleFormResponseDto } from './send-google-form.dto';
 import { HttpService } from '@nestjs/axios';
 import { catchError, firstValueFrom } from 'rxjs';
 import { AxiosError } from 'axios';
+import { getGoogleFormResponseUrl } from '@app/common/utils/helper';
+import { GoogleFormConfigType } from '@app/config/googleForm.config';
 
 @Injectable()
 export class SendGoogleFormService {
   private readonly logger = new Logger(SendGoogleFormService.name);
-  constructor(private readonly configService: ConfigService, private readonly httpService: HttpService) {}
+
+  @Inject(ConfigService)
+  private config: ConfigService<GoogleFormConfigType>;
+
+  constructor(private readonly httpService: HttpService) {}
 
   getGoogleFormUrl(): string {
-    const googleFormUrl = this.configService.get<string>('googleFormUrl');
-    if (!googleFormUrl) {
-      throw new BadRequestException('googleFormUrl is not configured!');
+    const googleFormId = this.config.get<GoogleFormConfigType['googleFormId']>('googleFormId');
+    if (!googleFormId) {
+      throw new BadRequestException('googleFormId is not configured!');
     }
-    return googleFormUrl;
+    return getGoogleFormResponseUrl(googleFormId);
+  }
+
+  getGoogleFormSearchParams(payload: SendGoogleFormRequestDto) {
+    const googleFormSearchParams = this.config.get<GoogleFormConfigType['googleFormDataField']>('googleFormDataField');
+
+    const searchParams = new URLSearchParams();
+
+    for (const [key, value] of Object.entries(googleFormSearchParams)) {
+      const fieldValue = payload[key];
+      if (!fieldValue) {
+        throw new BadRequestException(`${key} field is required!`);
+      }
+      const fieldName = /^entry\./.test(value) ? value : `entry.${value}`;
+      searchParams.append(fieldName, fieldValue);
+    }
+
+    return searchParams;
   }
 
   async sendDataToGoogleForm(payload: SendGoogleFormRequestDto): Promise<SendGoogleFormResponseDto> {
-    const { name, email, contactNumber, serviceRequired } = payload;
-
-    if (!name) {
-      throw new BadRequestException('name field is required!');
-    }
-    if (!email) {
-      throw new BadRequestException('email field is required!');
-    }
-    if (!contactNumber) {
-      throw new BadRequestException('contactNumber field is required!');
-    }
-    if (!serviceRequired || serviceRequired === '---') {
-      throw new BadRequestException('serviceRequired field is required!');
-    }
-
     const googleFormUrl = this.getGoogleFormUrl();
+    const searchParams = this.getGoogleFormSearchParams(payload);
 
-    const searchParams = new URLSearchParams();
-    searchParams.append('entry.1107925060', name);
-    searchParams.append('entry.1315868081', email);
-    searchParams.append('entry.1700347251', contactNumber);
-    searchParams.append('entry.1062054307', serviceRequired);
-    this.logger.log('[Google Form] - req body: ?', searchParams.toString());
+    this.logger.log(`[Google Form] - req body: ${searchParams.toString()}`);
 
     await firstValueFrom(
       this.httpService
@@ -53,9 +57,7 @@ export class SendGoogleFormService {
         .pipe(
           catchError((error: AxiosError) => {
             this.logger.error(error.response.data);
-            throw new BadRequestException(
-              'Something went wrong! You can try again later, (OR) Please make sure you have filled all the mandatory fields!',
-            );
+            throw new BadRequestException('Please make sure that you have filled all the mandatory fields!');
           }),
         ),
     );

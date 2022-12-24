@@ -1,8 +1,7 @@
 export class SendGoogleFormRequestDto {
   name: string;
   email: string;
-  contactNumber: string;
-  serviceRequired: string;
+  phoneNumber: string;
 }
 export class SendGoogleFormResponseDto {
   success: boolean;

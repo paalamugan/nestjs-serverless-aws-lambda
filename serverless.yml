@@ -1,4 +1,4 @@
-service: aws-form-send-serverless-aws-lambda
+service: aws-form-send-serverless-lambda
 
 plugins:
   - serverless-plugin-typescript
@@ -15,7 +15,7 @@ provider:
 
   environment:
     NODE_ENV: ${sls:stage}
-    GOOGLE_FORM_URL: ${file(./serverless-config/${opt:stage, 'dev'}.config.json):GOOGLE_FORM_URL}
+    GOOGLE_FORM_ID: ${file(./serverless-config/${opt:stage, 'dev'}.config.json):GOOGLE_FORM_ID}
 
 custom:
   defaultStage: dev

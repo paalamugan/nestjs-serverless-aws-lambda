@@ -2,15 +2,19 @@ import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ConfigModule } from '@nestjs/config';
-import configuration from './config/configuration';
+import { globalConfig } from './config/global.config';
 import { validate } from './validation/env.validation';
 import { SendGoogleFormModule } from './send-google-form/send-google-form.module';
+import { join } from 'path';
+import { getEnvPaths } from './common/utils/helper';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
+      ignoreEnvFile: false,
+      envFilePath: getEnvPaths(join(__dirname, 'common', 'envs')),
       isGlobal: true,
-      load: [configuration],
+      load: [globalConfig],
       validate,
     }),
     SendGoogleFormModule,
