@@ -31,9 +31,11 @@ export class SendGoogleFormService {
 
     for (const [key, value] of Object.entries(googleFormSearchParams)) {
       const fieldValue = payload[key];
+
       if (!fieldValue) {
         throw new BadRequestException(`${key} field is required!`);
       }
+
       const fieldName = /^entry\./.test(value) ? value : `entry.${value}`;
       searchParams.append(fieldName, fieldValue);
     }

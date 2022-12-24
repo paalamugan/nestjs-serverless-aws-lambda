@@ -4,6 +4,7 @@ plugins:
   - serverless-plugin-typescript
   - serverless-plugin-optimize
   - serverless-offline
+  - serverless-dotenv-plugin
 
 provider:
   name: aws
@@ -11,14 +12,12 @@ provider:
   stage: ${opt:stage, self:custom.defaultStage}
   # profile: ${self:custom.profiles.${sls:stage}}
   region: us-east-1
-  memorySize: 512
-
-  environment:
-    NODE_ENV: ${sls:stage}
-    GOOGLE_FORM_ID: ${file(./serverless-config/${opt:stage, 'dev'}.config.json):GOOGLE_FORM_ID}
+  # memorySize: 512
 
 custom:
-  defaultStage: dev
+  defaultStage: development
+  dotenv:
+    basePath: src/common/envs/
   # profiles:
   #   dev: devProfile
   #   prod: prodProfile
@@ -29,7 +28,7 @@ functions:
     events:
       - http:
           method: ANY
-          path: /
+          path: / # this matches the base path
       - http:
           method: ANY
-          path: '{proxy+}'
+          path: '{proxy+}' # this matches any path, the token 'any' doesn't mean anything special

@@ -1,4 +1,4 @@
-import { environmentMap } from '@app/common/constants';
+import { Environment } from '@app/types/env';
 import { resolve } from 'path';
 
 export const getGoogleFormResponseUrl = (formId: string) => {
@@ -6,12 +6,18 @@ export const getGoogleFormResponseUrl = (formId: string) => {
 };
 
 export function getEnvPaths(destination: string): string[] {
-  const envName = environmentMap[process.env.NODE_ENV];
+  const envName = Environment[process.env.NODE_ENV] || Environment.development;
 
-  return [
+  const paths = [
     resolve(destination, `.env.${envName}.local`),
-    resolve(destination, '.env.local'),
     resolve(destination, `.env.${envName}`),
     resolve(destination, `.env`),
   ];
+
+  // Don't include .env.local if NODE_ENV is test
+  if (envName !== Environment.test) {
+    paths.splice(2, 0, resolve(destination, '.env.local'));
+  }
+
+  return paths;
 }
