@@ -14,6 +14,7 @@ import { getEnvPaths } from './common/utils/helper';
       ignoreEnvFile: false,
       envFilePath: getEnvPaths(join(__dirname, 'common', 'envs')),
       isGlobal: true,
+      cache: true,
       load: [globalConfig],
       validate,
     }),

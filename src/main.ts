@@ -11,8 +11,7 @@ async function bootstrap() {
 
   const configService = app.get(ConfigService<GlobalConfigType>);
   await app.listen(configService.get('port'));
-
-  logger.log(`Application is running on: ${await app.getUrl()}`);
+  logger.log(`Application is running on ${configService.get('env')} mode: ${await app.getUrl()}`);
 }
 
 bootstrap();
