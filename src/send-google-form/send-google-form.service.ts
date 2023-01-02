@@ -32,10 +32,6 @@ export class SendGoogleFormService {
 
   getGoogleFormDataFieldKey(fieldValue: string) {
     const googleFormDataFields = this.getGoogleFormDataFields();
-    console.log(
-      '🚀 ~ file: send-google-form.service.ts:35 ~ SendGoogleFormService ~ getGoogleFormDataFieldKey ~ googleFormDataFields',
-      googleFormDataFields,
-    );
     const [key] = googleFormDataFields.find(([, value]) => value === fieldValue);
     return key;
   }
